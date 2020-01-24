@@ -1,25 +1,19 @@
-#include "GarrysMod/Lua/Interface.h"
-#include <stdio.h>
-#include <iostream>
-#include <string>
-#include "stdint.h"
-#include "utilities.cpp"
+#include"GarrysMod/Lua/Interface.h"
+#include<stdio.h>
+#include<iostream>
+#include<string>
+#include"stdint.h"
+#ifdef DEBUG
+	#include"utilities.cpp"
+#endif
 
 #ifdef _WIN32
-	#include <windows.h>
-	#include <libloaderapi.h>
+	#include"windows_getprocaddres.cpp"
+#elif
+	
 #endif
+
 using namespace GarrysMod::Lua;
-
-typedef void* (*set_upvalue)(lua_State* L,int funcinedx,int n);
-static set_upvalue lua_setupvalue = (set_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"), "lua_setupvalue");;
-
-typedef void* (*id_upvalue)(lua_State* L,int funcinedx,int n);
-static id_upvalue lua_upvalueid = (id_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"), "lua_upvalueid");
-
-// for some reason this shit keeps thinking a ; is missing even tho "ApPaReNtLy" its being used correctly....wtf???
-//void* lua_setupvalue = (set_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"),"lua_setupvalue");
-//void* lua_upvalueid = (id_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"),"lua_upvalueid");
 
 int VAAS_SetUpvalue(lua_State* L){
 	GarrysMod::Lua::ILuaBase* LUA = L->luabase;
@@ -43,16 +37,43 @@ int VAAS_UpvalueID(lua_State* L){
 	return 1;
 }
 
+int VAAS_UpvalueJoin(lua_State* L) { //best to for sure not use this one
+	GarrysMod::Lua::ILuaBase* LUA = L->luabase;
+	LUA->SetState(L);
+	unsigned int func1 = LUA->GetNumber(1);
+	unsigned int index1 = LUA->GetNumber(2);
+	unsigned int func2 = LUA->GetNumber(3);
+	unsigned int index2 = LUA->GetNumber(4);
+
+	lua_upvaluejoin(L,index1,index1,index2,index2);
+	return 1;
+}
+
+int VAAS_SetLocal(lua_State* L){ //best to for sure not use this one
+	GarrysMod::Lua::ILuaBase* LUA = L->luabase;
+	LUA->SetState(L);
+	const lua_Debug* ar = 0;
+	unsigned int n = LUA->GetNumber(1);
+
+	lua_setlocal(L,ar,n);
+	return 1;
+}
+
 void VAAS_Upvalues_Init(GarrysMod::Lua::ILuaBase* LUA){
-	printMessage(LUA,"Vaas Upvalues module loaded.\n",0,255,0);
-	printMessage(LUA,"Readding functions that I need because they were fucking nuked.\n",0,255,0);
+	#ifdef DEBUG
+		msg("Vaas Upvalues module loaded.\n",0,255,0);
+		msg("Readding functions that I need because they were fucking nuked.\n",0,255,0);
+	#endif
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
-		LUA->CreateTable();
+		LUA->GetField(-1,"debug");// Was told LUA->SetField("debug") would destroy debug library so I used GetField instead
 			LUA->PushCFunction(VAAS_SetUpvalue);
 			LUA->SetField(-2,"SetUpvalue");
 			LUA->PushCFunction(VAAS_UpvalueID);
 			LUA->SetField(-2,"UpvalueID");
-		LUA->SetField(-2,"debug");
+			LUA->PushCFunction(VAAS_UpvalueJoin);
+			LUA->SetField(-2,"UpvalueJoin");
+			LUA->PushCFunction(VAAS_SetLocal);
+			LUA->SetField(-2,"SetLocal");
 	LUA->Pop();
 }
 

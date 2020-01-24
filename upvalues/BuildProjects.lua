@@ -44,6 +44,7 @@ workspace(string.lower(lua_state..vaas.project_name))
 			end
 		configuration'Release'
 			links{'lua_shared.lib'}
+			links{'tier0.dll'}
 			for k,v in pairs(vaas.release_flags)do
 				vaas.release_flags.v()
 			end
