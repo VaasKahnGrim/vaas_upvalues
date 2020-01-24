@@ -11,15 +11,15 @@
 #endif
 using namespace GarrysMod::Lua;
 
-typedef void* (*lua_setupvaluefn)(lua_State* L,int funcinedx,int n);
-static lua_setupvaluefn lua_setupvalue;
+typedef void* (*set_upvalue)(lua_State* L,int funcinedx,int n);
+static set_upvalue lua_setupvalue = (set_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"), "lua_setupvalue");;
 
-typedef void* (*lua_upvalueidfn)(lua_State* L,int funcinedx,int n);
-static lua_upvalueidfn lua_upvalueid;
+typedef void* (*id_upvalue)(lua_State* L,int funcinedx,int n);
+static id_upvalue lua_upvalueid = (id_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"), "lua_upvalueid");
 
 // for some reason this shit keeps thinking a ; is missing even tho "ApPaReNtLy" its being used correctly....wtf???
-void* lua_setupvalue = (lua_setupvalue)GetProcAddress(GetModuleHandleA("lua_shared"),"lua_setupvalue");
-void* lua_upvalueid = (lua_upvalueid)GetProcAddress(GetModuleHandleA("lua_shared"),"lua_upvalueid");
+//void* lua_setupvalue = (set_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"),"lua_setupvalue");
+//void* lua_upvalueid = (id_upvalue)GetProcAddress(GetModuleHandleA("lua_shared"),"lua_upvalueid");
 
 int VAAS_SetUpvalue(lua_State* L){
 	GarrysMod::Lua::ILuaBase* LUA = L->luabase;

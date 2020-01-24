@@ -36,11 +36,14 @@ workspace(string.lower(lua_state..vaas.project_name))
 		filter'platforms:x64'
 			architecture'x86_64'
 		filter{}
+		libdirs{vaas.dependancies_folder}
 		configuration'Debug'
+			links{'lua_shared.lib'}
 			for k,v in pairs(vaas.debug_flags)do
 				vaas.debug_flags.v()
 			end
 		configuration'Release'
+			links{'lua_shared.lib'}
 			for k,v in pairs(vaas.release_flags)do
 				vaas.release_flags.v()
 			end
